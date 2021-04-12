@@ -11,7 +11,7 @@ contract Ethbnb {
 
   using OptimBookerLib for OptimBookerLib.Storage;
 
-  enum Country {
+  enum Country {              
     AF, AX, AL, DZ, AS, AD, AO, AI, AG, AR, AM, AW, AU, AT, AZ, BS, BH,
     BD, BB, BY, BE, BZ, BJ, BM, BT, BO, BA, BW, BV, BR, VG, BN, BG, BF,
     BI, TC, KH, CM, CA, CV, KY, CF, TD, CL, CN, CX, CC, CO, KM, CG, CD,
@@ -29,13 +29,13 @@ contract Ethbnb {
     YE, ZM, ZW
   }
 
-  struct Listing {
+  struct Listing {    //出租屋信息
 
     uint lid;
 
     address owner;
 
-    uint price;
+    uint price; 
 
     string location;
 
@@ -44,17 +44,17 @@ contract Ethbnb {
     uint256 balance;
 
     /**  */
-    OptimBookerLib.Storage booker;
+    OptimBookerLib.Storage booker;    //此处引入了一个外部合约的变量，用以存放订阅信息。
 
     string imageCID;
     string imageCIDSource;
   }
 
-  struct Account {
+  struct Account {      //用户信息
     address payable owner;
     string name;
     uint dateCreated;
-    /**
+    /**s
      * Account's average rating (out of 5) can be computed as
      * totalScore / totalRatings
      */
@@ -62,7 +62,7 @@ contract Ethbnb {
     uint nRatings;
   }
 
-  struct Booking {
+  struct Booking {           //订阅信息
     uint bid;
     uint lid;
     address guestAddr;
@@ -91,7 +91,7 @@ contract Ethbnb {
   // MEMBER VARIABLES
   // =======================================================================
 
-  event Log(string functionName, string msg);
+  event Log(string functionName, string msg);       //制作一些监听事件
   event Error(int code);
 
   // Account events
@@ -111,7 +111,7 @@ contract Ethbnb {
   /**
    * Listings will have incrementing Ids starting from 1
    */
-  uint nextListingId = 1;
+  uint nextListingId = 1;            //创建一个基本的可增长的编号
 
   /**
    * Bookings will have incrementing Ids starting from 1
@@ -119,10 +119,10 @@ contract Ethbnb {
   uint nextBookingId = 1;
 
   /** Store all created listings  */
-  mapping(uint => Listing) listings;
+  mapping(uint => Listing) listings;      //通过mapping把数据嵌套存储起来
 
   /** Stores accounts */
-  mapping(address => Account) accounts;
+  mapping(address => Account) accounts;  //先通过创建struct然后再用mapping映射
 
   /** Stores bookings */
   mapping(uint => Booking) bookings;
@@ -131,7 +131,7 @@ contract Ethbnb {
   // FUNCTIONS
   // =======================================================================
 
-  modifier accountExists() {
+  modifier accountExists() {    //
     require(accounts[msg.sender].owner == msg.sender, 'Invalid account address');
     _;
   }
@@ -163,18 +163,18 @@ contract Ethbnb {
     emit CreateAccountEvent(msg.sender);
   }
 
-  function hasAccount() public view returns (bool) {
+  function hasAccount() public view returns (bool) {  //确定是否拥有
     return accounts[msg.sender].owner == msg.sender;
   }
 
-  function getAccountAll(address owner) public view
+  function getAccountAll(address owner) public view  //查询账户信息
     returns (string memory name, uint dateCreated, uint totalScore, uint nRatings) {
       require(accounts[owner].owner == owner, 'Invalid account address');
       Account memory account = accounts[owner];
       return (account.name, account.dateCreated, account.totalScore, account.nRatings);
     }
 
-  function getListingAll(uint lid) public listingExists(lid) view
+  function getListingAll(uint lid) public listingExists(lid) view  //声明顺便修饰一下
     returns (address owner, uint price, string memory location, Country country, uint256 balance,
       string memory imageCID, string memory imageCIDSource) {
       Listing memory l = listings[lid];
@@ -188,7 +188,7 @@ contract Ethbnb {
    * When the listing create the smart-contract will have had the 2xprice amount
    * added to its balance.
    */
-  function createListing(Country country, string memory location, uint price)
+  function createListing(Country country, string memory location, uint price)   //创建自定义结构
     public payable accountExists() {
         // Note: enforce a maximum number of listings per user?
         listings[nextListingId] = Listing({
@@ -207,7 +207,7 @@ contract Ethbnb {
         listings[nextListingId].booker.initialise();
         emit CreateListingEvent(msg.sender, nextListingId++);
   }
-
+  //以下是一些解释性的natspec语句
   /**
    * Book a listing
    *
@@ -216,7 +216,7 @@ contract Ethbnb {
    * @param nbOfDays     number of days for which the booking will be made
    */
   function bookListing(uint lid, uint fromDate, uint nbOfDays)
-    public payable listingExists(lid) {
+    public payable listingExists(lid) {               
       // TODO: cap the number of booked days to 30 or so
       Listing storage listing = listings[lid];
       address payable guest = msg.sender;

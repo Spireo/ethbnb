@@ -11,33 +11,33 @@ library OptimBookerLib {
         uint next;
     }
 
-    struct Storage {
+    struct Storage {                   //使用自定义数据结构来存储相关的信息
         uint nextPos;
-        mapping (uint => Node) nodes;
+        mapping (uint => Node) nodes;   //listing>storage>nodes
     }
 
     uint constant HEAD = 0;
     uint constant JUNK = 2^256-1; // We assume there won't be that many bookings
 
-    int public constant NOT_FOUND = -1;
+    int public constant NOT_FOUND = -1;             //错误类型
     int public constant BOOK_CONFLICT = -2;
 
-    event Booked(uint bid);
+    event Booked(uint bid);                          //事件
     event Cancelled(uint bid);
     event Log(uint, uint);
 
     /// The list is empty if the HEAD node points to itself
-    function isEmpty(Storage storage self) public view returns (bool)
+    function isEmpty(Storage storage self) public view returns (bool)    //查看是否为空
     {
         return self.nodes[HEAD].next == HEAD;
     }
 
-    function createLink(Storage storage self, uint fromNode, uint toNode) private
+    function createLink(Storage storage self, uint fromNode, uint toNode) private    //这是什么连接？
     {
         self.nodes[fromNode].next = toNode;
     }
 
-    function _printAll(Storage storage self) public
+    function _printAll(Storage storage self) public    //打印所有
     {
         uint curr = self.nodes[HEAD].next;
         while (curr != HEAD) {
@@ -68,7 +68,7 @@ library OptimBookerLib {
         return junkNotInitialised(self) || self.nodes[JUNK].next == JUNK;
     }
 
-    // Adds the provided node to junk
+    // Adds the provided node to junk                          //junk可能只是一个缓存
     function addJunk(Storage storage self, uint node) private
     {
         require(node != JUNK, 'Cannot add provided node to Junk');
@@ -115,7 +115,7 @@ library OptimBookerLib {
     }
 
     function newNode(Storage storage self, uint prevNode, uint nextNode, uint bid, uint fromDate, uint toDate) private
-    {
+    {                                          //这个是什么？
         uint nextPos = useNextPos(self);
         Node memory n = Node({
             fromDate: fromDate,
@@ -134,11 +134,11 @@ library OptimBookerLib {
     ///     - Emits Booking event
     ///     - Updates nextBid
     function newBook(Storage storage self, uint prevNode, uint nextNode, uint bid, uint fromDate, uint toDate)
-        private returns (uint)
+        private returns (uint)                                                  
     {
         require(toDate > fromDate, 'fromDate must be less than toDate');
         newNode(self, prevNode, nextNode, bid, fromDate, toDate);
-        emit Booked(bid);
+        emit Booked(bid);                                   //一个监督函数？
         return bid;
     }
 
@@ -149,7 +149,7 @@ library OptimBookerLib {
         self.nodes[JUNK].next = JUNK;
     }
 
-    function book(Storage storage self, uint bid, uint fromDate, uint toDate) public returns (int)
+    function book(Storage storage self, uint bid, uint fromDate, uint toDate) public returns (int)  //使用self直接传入Storage类对象
     {
         require(fromDate < toDate, 'Invalid dates provided');
         uint prev = HEAD;
