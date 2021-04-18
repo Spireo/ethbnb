@@ -72,7 +72,7 @@ contract Ethbnb {
      * Rating assigned to the owner by the guest
      * defaults to 0 which means nothing was set
      */
-    uint ownerRating;
+    uint ownerRating;           //本次的评分
     /**
      * Rating assigned to the guest by the owner
      * defaults to 0 which means nothing was set
@@ -257,7 +257,7 @@ contract Ethbnb {
       }
     }
 
-  function setListing(uint lid, uint price, string memory location, Country country)
+  function setListing(uint lid, uint price, string memory location, Country country)    //创建出租屋信息
     public listingExists(lid) onlyListingHost(lid) {
       Listing storage listing = listings[lid];
       listing.location = location;
@@ -266,7 +266,7 @@ contract Ethbnb {
       emit UpdateListingEvent(msg.sender, lid);
   }
 
-  function setListingImage(uint lid, string memory cid, string memory cidSource)
+  function setListingImage(uint lid, string memory cid, string memory cidSource)       //设定出租屋image？
     public listingExists(lid) onlyListingHost(lid) {
       Listing storage listing = listings[lid];
       listing.imageCID = cid;
@@ -281,7 +281,7 @@ contract Ethbnb {
    *
    * @param lid   id of the listing to be deleted
    */
-  function deleteListing(uint lid) public listingExists(lid) onlyListingHost(lid) {
+  function deleteListing(uint lid) public listingExists(lid) onlyListingHost(lid) {   //删除相关出租屋信息
     // Check that there are no active bookings before we proceed
     Listing storage listing = listings[lid];
     require(false == listing.booker.hasActiveBookings(), 'Cannot delete listing with active bookings');
@@ -296,7 +296,7 @@ contract Ethbnb {
     emit DeleteListingEvent(msg.sender, lid);
   }
 
-  function depositIntoListing(uint lid)
+  function depositIntoListing(uint lid)                    //在出租屋名下deposit钱财
     public payable
     listingExists(lid)
     onlyListingHost(lid)
@@ -305,7 +305,7 @@ contract Ethbnb {
       listing.balance += msg.value;
   }
 
-  function withdrawFromListing(uint lid, uint amount)
+  function withdrawFromListing(uint lid, uint amount)     //从listing名下提现
     public
     listingExists(lid)
     onlyListingHost(lid)
@@ -323,7 +323,7 @@ contract Ethbnb {
    *
    * @param bid       id of the booking
    */
-  function fulfilBooking(uint bid) public validBooking(bid) {
+  function fulfilBooking(uint bid) public validBooking(bid) {                //由guest来完成订阅
     Booking storage booking = bookings[bid];
     uint lid = booking.lid;
     address guest = booking.guestAddr;
@@ -340,7 +340,7 @@ contract Ethbnb {
     uint256 amount = booking.balance / 4;
     booking.balance = 0;
     listings[lid].balance += amount * 2;
-    accounts[host].owner.transfer(amount);
+    accounts[host].owner.transfer(amount);               //还是通过计算的方式算好多少钱，然后转帐
     accounts[guest].owner.transfer(amount);
   }
 
@@ -358,7 +358,7 @@ contract Ethbnb {
    * @param stars       unsigned integer between 1 and 5, anything else
    *                    will emit an error
    */
-  function rate(uint bid, uint stars) public validBooking(bid) {
+  function rate(uint bid, uint stars) public validBooking(bid) {       //客户给予评分
     require(stars >= 1 && stars <= 5, 'Stars arg must be in [1,5]');
     Booking storage booking = bookings[bid];
     require(booking.guestAddr == msg.sender || booking.hostAddr == msg.sender, 'Sender not participated in booking');
@@ -366,7 +366,7 @@ contract Ethbnb {
     require(toDate <= now, 'Cannot rate a booking before it ends');
     if (booking.guestAddr == msg.sender) {
       // The guest is rating the owner
-      require(booking.ownerRating == 0, 'Owner already rated, cannot re-rate');
+      require(booking.ownerRating == 0, 'Owner already rated, cannot re-rate');    //判断是否评分过
       // Assign the rating and adjust their account
       booking.ownerRating = stars;
       accounts[booking.hostAddr].totalScore += stars;
@@ -388,7 +388,7 @@ contract Ethbnb {
    *
    * @param bid           id of the booking to be cancelled
    */
-  function cancelBooking(uint bid) public validBooking(bid) {
+  function cancelBooking(uint bid) public validBooking(bid) {   //取消订阅
     Booking storage booking = bookings[bid];
     uint lid = booking.lid;
     require(

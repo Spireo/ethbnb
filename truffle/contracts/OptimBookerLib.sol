@@ -13,7 +13,7 @@ library OptimBookerLib {
 
     struct Storage {                   //使用自定义数据结构来存储相关的信息
         uint nextPos;
-        mapping (uint => Node) nodes;   //listing>storage>nodes
+        mapping (uint => Node) nodes;   //listing>storage>nodes>node
     }
 
     uint constant HEAD = 0;
@@ -115,7 +115,7 @@ library OptimBookerLib {
     }
 
     function newNode(Storage storage self, uint prevNode, uint nextNode, uint bid, uint fromDate, uint toDate) private
-    {                                          //这个是什么？
+    {                                          //新建一个
         uint nextPos = useNextPos(self);
         Node memory n = Node({
             fromDate: fromDate,
@@ -137,7 +137,7 @@ library OptimBookerLib {
         private returns (uint)                                                  
     {
         require(toDate > fromDate, 'fromDate must be less than toDate');
-        newNode(self, prevNode, nextNode, bid, fromDate, toDate);
+        newNode(self, prevNode, nextNode, bid, fromDate, toDate);        //成功后将新的订阅期打包到房屋订阅信息nodes里
         emit Booked(bid);                                   //一个监督函数？
         return bid;
     }
@@ -153,12 +153,12 @@ library OptimBookerLib {
     {
         require(fromDate < toDate, 'Invalid dates provided');
         uint prev = HEAD;
-        uint curr = self.nodes[HEAD].next;
+        uint curr = self.nodes[HEAD].next;   //next可能是记录下一个订阅会是什么号
         while (curr != HEAD) {
             uint currFrom = self.nodes[curr].fromDate;
             uint currTo = self.nodes[curr].toDate;
-            if (fromDate >= currTo) {
-                return int(newBook(self, prev, curr, bid, fromDate, toDate));
+            if (fromDate >= currTo) {                           //订阅的时间大于当前最新的订阅期直接进行下一步正式订阅
+                return int(newBook(self, prev, curr, bid, fromDate, toDate));   //依然将最开始订阅时传入的参数继续传递下去，以及self
             } else if (toDate <= currFrom) {
                 prev = curr;
                 curr = self.nodes[curr].next;
